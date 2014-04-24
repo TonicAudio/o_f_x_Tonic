@@ -14,6 +14,8 @@
 
 #include "TonicCore.h"
 #include <sstream>
+#include <stdio.h>
+#include <string.h>
 
 /*
   This is an almost exact copy of STKFrames. Many thanks to Perry Cook and Gary Scavone.
@@ -65,8 +67,8 @@ namespace Tonic {
       defined.
     */
     void operator+= ( TonicFrames& f );
-    
-    
+
+
     void operator-= ( TonicFrames& f );
 
     //! Assignment by product operator into self.
@@ -76,8 +78,8 @@ namespace Tonic {
       defined.
     */
     void operator*= ( TonicFrames& f );
-    
-    
+
+
     void operator/= ( TonicFrames& f );
 
     //! Channel / frame subscript operator that returns a reference.
@@ -97,8 +99,8 @@ namespace Tonic {
       is performed unless TONIC_DEBUG is defined.
     */
     TonicFloat operator() ( size_t frame, unsigned int channel ) const;
-      
-      
+
+
     //! Copy one channel to another
     /*!
       The \c src and \c dst indices must be between 0 and channels() - 1, and
@@ -108,18 +110,18 @@ namespace Tonic {
 
     //! Fill all channels with contents of channel 0
     void fillChannels();
-    
+
     //! clear the frames data
     void clear();
-    
+
     //! Fill frames from other source.
-    /*! 
+    /*!
       Copies channels from one object to another. Frame count must match.
       If source has more channels than destination, they will be averaged.
       If destination has more channels than source, they will be copied to all channels.
     */
     void copy( TonicFrames & f );
-        
+
     //! Return an interpolated value at the fractional frame index and channel.
     /*!
       This function performs linear interpolation.  The \c frame
@@ -130,7 +132,7 @@ namespace Tonic {
     TonicFloat interpolate( TonicFloat frame, unsigned int channel = 0 ) const;
 
     //! Returns the total number of audio samples represented by the object.
-    size_t size() const { return size_; }; 
+    size_t size() const { return size_; };
 
     //! Returns \e true if the object size is zero and \e false otherwise.
     bool empty() const;
@@ -155,7 +157,7 @@ namespace Tonic {
       smaller or equal to a previously allocated size.
     */
     void resize( size_t nFrames, unsigned int nChannels, TonicFloat value );
-    
+
     //! Resize and stretch/shrink existing data to fit new size.
     void resample( size_t nFrames , unsigned int nChannels );
 
@@ -247,14 +249,14 @@ namespace Tonic {
 
     return data_[ frame * nChannels_ + channel ];
   }
-    
+
   inline void TonicFrames :: copyChannel(unsigned int src, unsigned int dst)
   {
 
     TonicFloat *sptr = data_ + src;
     TonicFloat *dptr = data_ + dst;
     unsigned int stride = nChannels_;
-    
+
     vcopy(dptr, stride, sptr, stride, nFrames_);
 
   }
@@ -265,13 +267,13 @@ namespace Tonic {
       this->copyChannel(0, i);
     }
   }
-  
+
   inline void TonicFrames::clear(){
     memset(data_, 0, size_ * sizeof(TonicFloat));
   }
-  
+
   inline void TonicFrames::copy( TonicFrames &f ){
-    
+
 #if defined(TONIC_DEBUG)
     if ( f.frames() != nFrames_) {
       std::ostringstream error;
@@ -279,16 +281,16 @@ namespace Tonic {
       Tonic::error(error.str(), true);
     }
 #endif
-    
+
     unsigned int fChannels = f.channels();
     TonicFloat *dptr = data_;
     TonicFloat *fptr = &f[0];
-    
+
     if (nChannels_ == fChannels){
       memcpy(dptr, fptr, size_ * sizeof(TonicFloat));
     }
     else if (nChannels_ < fChannels){
-      
+
       // sum channels
       memset(dptr, 0, size_ * sizeof(TonicFloat));
       for (unsigned int c=0; c<fChannels; c++){
@@ -298,7 +300,7 @@ namespace Tonic {
           *dptr += *fptr;
         }
       }
-      
+
       // apply scaling (average of channels)
       TonicFloat s = 1.0f/fChannels;
       dptr = data_;
@@ -309,11 +311,11 @@ namespace Tonic {
     else{
       // just copy one channel, then fill
       vcopy(dptr, nChannels_, fptr, fChannels, nFrames_);
-      
+
       // fill all channels if necessary
       fillChannels();
     }
-      
+
   }
 
   inline void TonicFrames :: operator+= ( TonicFrames& f )
@@ -325,24 +327,24 @@ namespace Tonic {
       Tonic::error(error.str(), true);
     }
   #endif
-    
+
     TonicFloat *fptr = &f[0];
     TonicFloat *dptr = data_;
-    
+
     unsigned int fChannels = f.channels();
-    
+
     if (nChannels_ == fChannels){
-      
+
 #ifdef USE_APPLE_ACCELERATE
       vDSP_vadd(dptr, 1, fptr, 1, dptr, 1, size_);
 #else
       for ( unsigned int i=0; i<size_; i++ )
         *dptr++ += *fptr++;
 #endif
-      
+
     }
     else if (nChannels_ < fChannels){
-      
+
       //  just add first channel of rhs
 #ifdef USE_APPLE_ACCELERATE
       vDSP_vadd(dptr, 1, fptr, fChannels, dptr, 1, nFrames_);
@@ -352,7 +354,7 @@ namespace Tonic {
         fptr++;
       }
 #endif
-      
+
     }
     else{
       //  add rhs to both channels
@@ -366,10 +368,10 @@ namespace Tonic {
       }
 #endif
     }
-    
+
   }
-  
-  
+
+
   inline void TonicFrames :: operator -= ( TonicFrames& f )
   {
   #if defined(TONIC_DEBUG)
@@ -380,14 +382,14 @@ namespace Tonic {
     }
   #endif
 
-    
+
     TonicFloat *fptr = &f[0];
     TonicFloat *dptr = data_;
 
     unsigned int fChannels = f.channels();
-    
+
     if (nChannels_ == fChannels){
-      
+
 #ifdef USE_APPLE_ACCELERATE
       vDSP_vsub(fptr, 1, dptr, 1, dptr, 1, size_);
 #else
@@ -396,7 +398,7 @@ namespace Tonic {
 #endif
     }
     else if (nChannels_ < fChannels){
-      
+
       //  just subtract first channel of rhs
 #ifdef USE_APPLE_ACCELERATE
       vDSP_vsub(dptr, 1, fptr, fChannels, dptr, 1, nFrames_);
@@ -406,7 +408,7 @@ namespace Tonic {
         fptr++;
       }
 #endif
-      
+
     }
     else{
       //  subtract both channels by rhs
@@ -423,11 +425,11 @@ namespace Tonic {
 
 
   }
-  
+
 
   inline void TonicFrames :: operator*= ( TonicFrames& f )
   {
-    
+
 #if defined(TONIC_DEBUG)
     if ( f.frames() != nFrames_) {
       std::ostringstream error;
@@ -435,14 +437,14 @@ namespace Tonic {
       Tonic::error(error.str(), true);
     }
 #endif
-    
+
     TonicFloat *fptr = &f[0];
     TonicFloat *dptr = data_;
 
     unsigned int fChannels = f.channels();
-    
+
     if (nChannels_ == fChannels){
-      
+
 #ifdef USE_APPLE_ACCELERATE
       vDSP_vmul(dptr, 1, fptr, 1, dptr, 1, size_);
 #else
@@ -450,10 +452,10 @@ namespace Tonic {
         *dptr++ *= *fptr++;
       }
 #endif
-      
+
     }
     else if (nChannels_ < fChannels){
-      
+
       //  just multiply by first channel of rhs
 #ifdef USE_APPLE_ACCELERATE
       vDSP_vmul(dptr, 1, fptr, fChannels, dptr, 1, nFrames_);
@@ -489,14 +491,14 @@ namespace Tonic {
       Tonic::error(error.str(), true);
     }
   #endif
-    
+
     TonicFloat *fptr = &f[0];
     TonicFloat *dptr = data_;
-    
+
     unsigned int fChannels = f.channels();
-    
+
     if (nChannels_ == fChannels){
-      
+
 #ifdef USE_APPLE_ACCELERATE
       vDSP_vdiv(fptr, 1, dptr, 1, dptr, 1, size_);
 #else
@@ -504,10 +506,10 @@ namespace Tonic {
         *dptr++ /= *fptr++;
       }
 #endif
-      
+
     }
     else if (nChannels_ < fChannels){
-      
+
       //  just multiply by first channel of rhs
 #ifdef USE_APPLE_ACCELERATE
       vDSP_vdiv(fptr, fChannels, dptr, 1, dptr, 1, nFrames_);
@@ -517,7 +519,7 @@ namespace Tonic {
         fptr++;
       }
 #endif
-      
+
     }
     else{
       //  multiply both channels by rhs
@@ -532,7 +534,7 @@ namespace Tonic {
 #endif
     }
   }
-  
+
 }
 
 #endif /* defined(__Tonic__TonicFrames__) */
