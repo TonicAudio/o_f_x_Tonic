@@ -11,7 +11,7 @@
 
 #include "LFNoise.h"
 #ifndef _WIN32
-#include "Util.h"
+//#include "Util.h"
 #endif
 namespace Tonic {
 namespace Tonic_{
@@ -25,7 +25,7 @@ void  LFNoise_::setFreq(ControlGenerator freq){
   mFreq = freq;
 }
 
-  
+
 }
 
 }

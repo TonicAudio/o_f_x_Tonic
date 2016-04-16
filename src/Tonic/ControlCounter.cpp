@@ -7,15 +7,16 @@
 //
 
 #include "ControlCounter.h"
+#include <limits>
 
 namespace Tonic { namespace Tonic_{
-  
+
   ControlCounter_::ControlCounter_(){
     end = ControlValue(std::numeric_limits<float>::infinity());
   }
-  
+
 } // Namespace Tonic_
-  
-  
-  
+
+
+
 } // Namespace Tonic
